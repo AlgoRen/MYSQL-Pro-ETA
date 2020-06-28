@@ -1,0 +1,33 @@
+{
+  "name": "develop",
+  "version": "1.0.0",
+  "description": "Mysql Worker Information Communicator",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlgoRen/MYSQL-Pro-ETA.git"
+  },
+  "keywords": [
+    "Mysql",
+    "Inquirer",
+    "ORM",
+    "Node",
+    "Application",
+    "Server",
+    "Side"
+  ],
+  "author": "Ren",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AlgoRen/MYSQL-Pro-ETA/issues"
+  },
+  "homepage": "https://github.com/AlgoRen/MYSQL-Pro-ETA#readme",
+  "dependencies": {
+    "inquirer": "^7.2.0",
+    "mysql": "^2.18.1"
+  }
+}
