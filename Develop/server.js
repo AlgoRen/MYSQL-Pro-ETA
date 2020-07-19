@@ -63,7 +63,7 @@ function start() {
             case "Update an employee role":
                 updateEmployees();
                 break;
-            case "Delete a departments":
+            case "Delete a department":
                 deleteDepartments();
                 break;
             case "Delete a role":
@@ -212,6 +212,62 @@ addEmployees = () => {
                     console.log(`Woot! Employee ${answers.first_name} ${answers.last_name} has been successfully added`);
                     start();
                 });
+            });
+        });
+    });
+};
+
+updateEmployees = () => {
+    connection.query(`SELECT CONCAT(first_name, " ", last_name) AS Employee, id FROM employees`, (err, res) => {
+        connection.query(`SELECT title, id from roles`, (err, data) => {
+            inquirer.prompt([
+                {
+                    message: "What is the name of the employee that you would like to update a role for?",
+                    type: "list",
+                    name: "updatedEmployee",
+                    choices: res.map(item => ({ name: item.Employee, value: item.id }))
+                }, 
+                {
+                    message: "What is the employee's new role?",
+                    type: "list",
+                    name: 'role_id',
+                    choices: data.map(item => ({ name: item.title, value: item.id }))
+
+                }
+             ])
+            .then(answers => {
+                    connection.query(`UPDATE employees SET role_id = "${answers.role_id}" WHERE id= "${answers.updatedEmployee}"`, 
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log("Employee's role has been successfully updated.");
+                        start();
+                    });
+                });
+        });
+    });
+}
+
+deleteDepartments = () => {
+    connection.query("SELECT name, id FROM departments", (err, res) => {
+        const departmentChoices = res.map(item => {
+            return {
+                name: item.name,
+                value: item.id
+            }
+        });
+        inquirer.prompt([{
+            message: "Which department would you like to remove?",
+            type: "list",
+            name: "deleteDepartment",
+            choices: departmentChoices
+        }])
+        .then((answers) => {
+            let departmentChoice = departmentChoices.filter(item => item.value === answers.deleteDepartment);
+            var query = `DELETE FROM departments WHERE id = "${answers.deleteDepartment}"`;
+            connection.query(query, (err, res) => {
+                if (err) throw err;
+                console.log(`Department ${departmentChoice[0].name} has been successfully removed.`);
+                start();
             });
         });
     });
