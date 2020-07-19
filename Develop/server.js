@@ -27,7 +27,6 @@ function start() {
             "View all employees",
             "View all departments",
             "View all roles",
-            "View all employees by manager",
             "Add a department",
             "Add a role",
             "Add an employee",
@@ -37,9 +36,9 @@ function start() {
             "Delete an employee",
             "Exit"
         ]
-    }).then(answer => {
-        console.log(answer, " User selected the following.");
-        switch (answer.action) {
+    }).then(answers => {
+        console.log(answers, " User selected the following.");
+        switch (answers.action) {
             case "View all employees":
                 viewEmployees();
                 break;
@@ -50,7 +49,7 @@ function start() {
                 viewRoles();
                 break;
             case "View all employees by manager":
-                viewEmployeeManagers();
+                viewEmployeesByManagers();
                 break;
             case "Add a department":
                 addDepartments();
@@ -111,3 +110,109 @@ viewRoles = () => {
         start();
     });
 }
+
+addDepartments = () => {
+    inquirer
+    .prompt({
+            name: "nameOfDepartment",
+            type: "input",
+            message: "What department would you like to add?",
+        })
+        .then(answers => {
+            connection.query(`INSERT INTO departments (name) VALUES ("${answers.nameOfDepartment}")`,
+            (err, res) => {
+                if (err) throw err;
+                console.log("You have added the following department: ", answers.nameOfDepartment);
+                start();
+        });
+    });
+}
+
+addRoles = () => {
+    connection.query("SELECT * FROM departments",  (err, res) => {
+        inquirer.prompt([
+            {
+                message: "Enter the title name of role:",
+                type: "input",
+                name: "roleTitle"
+            }, 
+            {
+                message: "Enter the salary for this role:",
+                type: "input",
+                name: "roleSalary"
+            }, 
+            {
+                message: "To which department would you like to assign this role?",
+                type: "list",
+                name: "roleDepartment",
+                choices: res.map(item => ({ name: item.name, value: item.id }))
+
+            }
+        ])
+        .then(answers => {
+            connection.query(`INSERT INTO roles(title, salary, department_id) VALUES ('${answers.roleTitle}', '${answers.roleSalary}', ${answers.roleDepartment})`,  (err, res) => {
+                if (err) throw err;
+                console.log("You have added the following role: ", answers.roleTitle);
+                start();
+            });
+        });
+    });
+}
+
+addEmployees = () => {
+    connection.query(`SELECT CONCAT(first_name, " ", last_name) AS Manager, id FROM employees`,  (err, res) => {
+        console.log(res);
+        connection.query(`SELECT DISTINCT title, id from roles`, (err, data) => {
+            inquirer.prompt([
+                {
+                    message: "What is the employee's first name?",
+                    type: "input",
+                    name: "first_name"
+                }, 
+                {
+                    message: "What is the employee's last name?",
+                    type: "input",
+                    name: "last_name"
+                }, 
+                {
+                    message: "What is the employee's role?",
+                    type: "list",
+                    name: 'role_id',
+                    choices: function () { 
+                        // Function that returns 0 if employee being added has no role to select.
+                        if (data.length > 0) {
+                            console.log("There are roles to add to this employee.");
+                            return data.map(item => ({ name: item.title, value: item.id }));
+                        } else {
+                            console.log("No roles to add to this employee.");
+                            return 0;
+                        }
+                    }
+                }, 
+                {
+                    message: "Who is the manager of this employee?",
+                    type: "list",
+                    name: 'manager_id',
+                    choices: function () {
+                        // Function that returns 0 if employee being added is the first.
+                        if (res.length > 0) {
+                            console.log("There are employees to add as manager.");
+                            return res.map(item => ({ name: item.Manager, value: item.id })) 
+                        } else {
+                            console.log("No Employyes to add as manager.");
+                            return [0];
+                        }
+                    }
+                }
+            ])
+            .then(answers => {
+                connection.query(`INSERT INTO employees(first_name, last_name, role_id, manager_id) VALUES ('${answers.first_name}', '${answers.last_name}', ${answers.role_id}, ${answers.manager_id})`,  
+                (err, res) => {
+                    if (err) throw err;
+                    console.log(`Woot! Employee ${answers.first_name} ${answers.last_name} has been successfully added`);
+                    start();
+                });
+            });
+        });
+    });
+};
