@@ -48,9 +48,6 @@ function start() {
             case "View all roles":
                 viewRoles();
                 break;
-            case "View all employees by manager":
-                viewEmployeesByManagers();
-                break;
             case "Add a department":
                 addDepartments();
                 break;
@@ -266,9 +263,62 @@ deleteDepartments = () => {
             var query = `DELETE FROM departments WHERE id = "${answers.deleteDepartment}"`;
             connection.query(query, (err, res) => {
                 if (err) throw err;
-                console.log(`Department ${departmentChoice[0].name} has been successfully removed.`);
+                console.log(`Department ${departmentChoice[0].name} has been successfully deleted.`);
                 start();
             });
         });
     });
 };
+
+deleteRoles = () => {
+    connection.query("SELECT title, id FROM roles", (req, res) => {
+        const roleChoices = res.map(item => ({
+            name: item.title,
+            value: item.id,
+        }));
+        inquirer.prompt([
+            {
+                name: "roleChoice",
+                type: "list",
+                message: "Choose a role you would like to delete: ",
+                choices: roleChoices
+            }
+        ]).then(answers => {
+            const chosenRole = roleChoices.filter(item => item.value === answers.roleChoice);
+            let query = `DELETE FROM roles WHERE id = ${answers.roleChoice}`;
+            connection.query(query,
+                (err, res) => {
+                    if (err) throw err;
+                    console.log(`Role ${chosenRole[0].name} has been successfully deleted.`);
+                    start();
+                });
+        });
+    });
+}
+
+deleteEmployees = () => {
+    connection.query("SELECT CONCAT(first_name, ' ', last_name) AS fullName, id FROM employees", (err, res) => {
+        const employeeChoices = res.map(item => ({
+            name: item.fullName,
+            value: item.id,
+        }));
+        inquirer.prompt([
+            {
+                name: "employeeChoice",
+                type: "list",
+                message: "Choose a employee you would like to delete: ",
+                choices: employeeChoices
+            }
+        ]).then(answers => {
+            const chosenEmployee = employeeChoices.filter(item => item.value === answers.empChoice);
+            let query = `DELETE FROM employees WHERE id = ${answers.employeeChoice}`;
+            connection.query(query,
+                (err, res) => {
+                    if (err) throw err;
+                    console.log(`Employee ${employeeChoices[0].name} has been successfully deleted.`);
+                    start();
+                });
+        });
+    });
+}
+
