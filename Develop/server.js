@@ -158,7 +158,6 @@ addRoles = () => {
 
 addEmployees = () => {
     connection.query(`SELECT CONCAT(first_name, " ", last_name) AS Manager, id FROM employees`,  (err, res) => {
-        console.log(res);
         connection.query(`SELECT DISTINCT title, id from roles`, (err, data) => {
             inquirer.prompt([
                 {
